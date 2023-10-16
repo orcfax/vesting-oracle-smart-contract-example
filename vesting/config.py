@@ -1,11 +1,17 @@
-from pycardano import *
+"""Condiguration options for this set of scripts..."""
 
-OGMIOS_URL = "wss://ogmios-preprod-api-public-6763d0.us1.demeter.run:443"
-KUPO_URL = "https://kupo-preprod-api-public-6763d0.us1.demeter.run:443"
+import os
+
+from pycardano import Network, OgmiosChainContext
+
+# Context for running PyCardano.
+OGMIOS_URL = "ws://ogmios.preprod.orcfax.io:1337"
 network = Network.TESTNET
-context = OgmiosChainContext(ws_url=OGMIOS_URL, kupo_url=KUPO_URL, network=network)
+context = OgmiosChainContext(ws_url=OGMIOS_URL, network=network)
+
+# Misc.
 contract_cbor = "build/contract/script.cbor"
-oracle_address = "addr_test1wzddzap6jvpg43dwesg78kyq7c77rz0krjj7g09x727yp8gvrxwd5"
+oracle_address = "addr_test1wz6mfpvyu7d4m9xxpkrc2wm8nel0htmjvsafpntlwpr7ggqnan7e6"  # default: "addr_test1wz6mfpvyu7d4m9xxpkrc2wm8nel0htmjvsafpntlwpr7ggqnan7e6"
 tx_template = {
     "type": "Witnessed Tx BabbageEra",
     "description": "Ledger Cddl Format",
@@ -13,7 +19,9 @@ tx_template = {
 }
 transactions_path = "transactions"
 oracle_address_file = "../oracle/build/contract/testnet.addr"
-source_address_skey = "wallet/source.skey"
-beneficiary_address_skey = "wallet/beneficiary.skey"
-fee_address_skey = "wallet/fee.skey"
-collateral_address_skey = "wallet/collateral.skey"
+
+# wallet paths.
+source_address_skey = os.path.join("..", "wallets", "source.skey")
+beneficiary_address_skey = os.path.join("..", "wallets", "beneficiary.skey")
+fee_address_skey = os.path.join("..", "wallets", "fee.skey")
+collateral_address_skey = os.path.join("..", "wallets", "vesting-collateral.skey")

@@ -1,0 +1,7 @@
+# Configurtion file for Markdown lint. Add exceptions here.
+default: true
+
+# Exceptions, example given, MD045
+MD013: false    # line-length (doesn't work with code-blocks)
+MD029: false    # ordered list not created per spec.
+MD004: false    # ordered list requires asterisks.

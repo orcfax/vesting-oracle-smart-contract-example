@@ -1,51 +1,62 @@
-from opshin.ledger.interval import *
+"""Vesting smart contract..."""
+
+from opshin.ledger.interval import *  # noqa: required import by OpShin.
 
 
 @dataclass
 class VestingParams(PlutusData):
-    """
-    Datum format
-    source: the published, who can also reclaim the UTxO anytime (refund)
-    beneficiary: the vesting beneficiary, who can claim the UTxO after the deadline
-        if he pays the fee to the fee_address and the datum value ("info") is greater than the limit
-    fee_address: the address where the fee must be paid
-    fee: the fee amount which must be paid
-    deadline: the vesting deadline
-    limit: the minimum limit for the datum value which allows the UTxO to be claimed by the beneficiary
-    """
+    """Vesting Params datum structure."""
 
+    # the published, who can also reclaim the UTxO anytime (refund).
     source: PubKeyHash
+
+    # the vesting beneficiary, who can claim the UTxO after the deadline if
+    # they pays the fee to the fee_address and the datum value ("info") is
+    # greater than the limit.
     beneficiary: PubKeyHash
+
+    # the address where the fee must be paid.
     fee_address: bytes
+
+    # the fee amount which must be paid
     fee: int
+
+    # the vesting deadline.
     deadline: POSIXTime
-    limit: int
+
+    # the minimum threshold for the datum value which allows the UTxO to
+    # be claimed by the beneficiary
+    threshold: int
 
 
 @dataclass
 class PublishParams(PlutusData):
-    """
-    Oracle datum format
-    owner: publisher of the datum, who can also reclaim the UTxO after the deadline (refund)
-    deadline:  the deadline after which the datum UTxO can be refunded
-    info: the useful information in the oracle datum, an int in this case
-    """
+    """Oracle datum structure."""
 
+    # publisher of the datum, who can also reclaim the UTxO after the deadline
+    # (refund).
     owner: PubKeyHash
+
+    # the deadline after which the datum UTxO can be refunded.
     deadline: POSIXTime
-    info: int
+
+    # the threshold value published by the datum for which the vesting
+    # Tx must meet.
+    threshold: int
 
 
 @dataclass
 class ClaimRedeemer(PlutusData):
+    """ClaimRedeemer object."""
+
     CONSTR_ID = 0
-    pass
 
 
 @dataclass
 class RefundRedeemer(PlutusData):
+    """RefundRedeemer object."""
+
     CONSTR_ID = 1
-    pass
 
 
 def validator(
@@ -53,43 +64,55 @@ def validator(
     redeemer: Union[ClaimRedeemer, RefundRedeemer],
     context: ScriptContext,
 ) -> None:
+    """Validation for the vesting contract."""
+
+    salt = "(1YfcE)"  # make the contract unique under tutorial circumstances.
+
     if isinstance(redeemer, ClaimRedeemer):
-        """
-        first check if the beneficiary signed the transaction
-        and if the transaction was submitted after the deadline
-        """
+        # first check if the beneficiary signed the transaction and if
+        # the transaction was submitted after the deadline.
         assert (
             datum.beneficiary in context.tx_info.signatories
         ), "Collect signature missing!"
-        assert contains(
-            make_from(datum.deadline), context.tx_info.valid_range
-        ), "TX submitted too early!"
-        """
-        check if the fee has been paid to the fee address
-        """
-        ff = False  # fee address found
-        fp = False  # fee paid
+        assert contains(make_from(datum.deadline), context.tx_info.valid_range), (
+            "TX submitted too early! " + salt
+        )
+        # check if the fee has been paid to the fee address
+        fee_found = False  # fee address found
+        fee_paid = False  # fee paid
         for item in context.tx_info.outputs:
             if datum.fee_address == item.address.payment_credential.credential_hash:
-                ff = True
+                fee_found = True
                 if item.value.get(b"", {b"": 0}).get(b"", 0) >= datum.fee:
-                    fp = True
-        assert ff, "Fee address not found in outputs!"
-        assert fp, "Fee too small!"
-        """
-        check if the datum.info from the reference input is greater than the datum.limit from the claimed UtxO
-        """
-        dc = False  # datum condition
-        for ri in context.tx_info.reference_inputs:
-            ris = ri.resolved.reference_script
-            if isinstance(ris, NoScriptHash):
-                rid = ri.resolved.datum
-                if isinstance(rid, SomeOutputDatum):
-                    oi: PublishParams = rid.datum  # oracle info
-                    if oi.info > datum.limit:
-                        dc = True
-        assert dc, "Claim condition not met!"
+                    fee_paid = True
+        assert fee_found, "Fee address not found in outputs!"
+        assert fee_paid, "Fee too small!"
+        # Construct the the failure text preemptively so that we can return
+        # something meaningful as the contract validates.
+        failure_text = ""
+        datum_condition = False  # datum condition
+        for reference_input in context.tx_info.reference_inputs:
+            reference_script = reference_input.resolved.reference_script
+            if isinstance(reference_script, NoScriptHash):
+                failure_text = "NoScriptHash: False, script associated with output -- checking datum in output"
+                reference_datum = reference_input.resolved.datum
+                if isinstance(reference_datum, SomeOutputDatum):
+                    data_from_oracle: PublishParams = (
+                        reference_datum.datum
+                    )  # oracle info
+                    # failure text cannot be constructed using an f-string
+                    # using OpShin.
+                    failure_text = (
+                        "SomeOutputDatum: True, datum in output -- checking ig value in Oracle: "
+                        + str(data_from_oracle.threshold)
+                        + " is greater than donor threshold: "
+                        + str(datum.threshold)
+                        + " to be able to claim"
+                    )
+                    if data_from_oracle.threshold > datum.threshold:
+                        datum_condition = True
+        assert datum_condition, failure_text
     elif isinstance(redeemer, RefundRedeemer):
-        assert datum.source in context.tx_info.signatories, "Refund signature missing!"
+        assert datum.source in context.tx_info.signatories, "refund signature missing!"
     else:
-        assert False, "Wrong redeemer"
+        assert False, "wrong redeemer"

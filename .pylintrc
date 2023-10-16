@@ -1,0 +1,41 @@
+# Pylint configuration.
+#
+# .pylintrc guide: https://github.com/PyCQA/pylint/blob/cfc393a8dff9ec09bd2fcb25857e772ae04a4991/examples/pylintrc
+#
+
+[MAIN]
+extension-pkg-whitelist=
+    pydantic, # binary module validation, Pydantic/Pylint recommendation.
+
+ignore=
+    LICENSE,
+    .pylintrc,
+
+ignore-patterns=
+    ^(.+).ini$,
+    ^(.+).md$,
+    ^(.+).sh$,
+    ^(.+).service$,
+    ^(.+).json,
+    ^(.+).yml,
+    ^(.+).yaml,
+    ^(.+).toml,
+    ^\.,
+    .*contract.py,
+    .*Makefile,
+
+ignore-paths=
+    requirements/.,
+    tests/fixtures/vcrpy/.,
+    Makefile,
+
+[MESSAGES CONTROL]
+
+disable =
+    C0301, 	# Line-length too long, see Black documented recommendations.
+    C0115,  # No docstring for Class.
+    C0103,  # Snake-case naming.
+    E0401,  # Import errors. The layout of this repo interferes with import but it is okay to ignore as a demo.
+    # TODO:
+    E0611,  # Module imports. These shouldn' be appearing.
+    R0801,  # Similar lines in two files.

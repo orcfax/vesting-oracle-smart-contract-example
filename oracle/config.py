@@ -1,9 +1,15 @@
-from pycardano import *
+"""Configuration options for this set of scripts..."""
 
-OGMIOS_URL = "wss://ogmios-preprod-api-public-6763d0.us1.demeter.run:443"
-KUPO_URL = "https://kupo-preprod-api-public-6763d0.us1.demeter.run:443"
+import os
+
+from pycardano import Network, OgmiosChainContext
+
+# Context for running Pycardano.
+OGMIOS_URL = "ws://ogmios.preprod.orcfax.io:1337"
 network = Network.TESTNET
-context = OgmiosChainContext(ws_url=OGMIOS_URL, kupo_url=KUPO_URL, network=network)
+context = OgmiosChainContext(ws_url=OGMIOS_URL, network=network)
+
+# Misc.
 contract_cbor = "build/contract/script.cbor"
 tx_template = {
     "type": "Witnessed Tx BabbageEra",
@@ -11,5 +17,7 @@ tx_template = {
     "cborHex": "",
 }
 transactions_path = "transactions"
-oracle_address_skey = "wallet/oracle.skey"
-collateral_address_skey = "wallet/collateral.skey"
+
+# wallet paths.
+oracle_address_skey = os.path.join("..", "wallets", "oracle.skey")
+collateral_address_skey = os.path.join("..", "wallets", "oracle-collateral.skey")
