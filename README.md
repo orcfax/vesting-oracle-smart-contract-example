@@ -5,7 +5,27 @@
 [awesome-opshin]: https://github.com/OpShin/awesome-opshin
 [awesome-opshin-img]: https://img.shields.io/badge/awesome-opshin-blue?logo=data:image/png;base64,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
 
-This example has 2 Opshin smart contracts:
+This example has two Opshin smart contracts that work in concert with
+one-another. A vesting contract allows a user to deposit ADA to be claimed by
+a beneficiary when certain other conditions are met. An oracle contract
+publishes values on chain. When the beneficiary seeks to claim the deposit, the
+oracle has to have published a value that is above the threshold set in the
+claim contract.
+
+This work is a modified version of cardano-apexpool's examples [here][apex-1].
+Many of the mechanics have been kept with terminology modified slightly and
+additional logging added to aid usabiility.
+
+Readers and those modifying this code will want to refer to the documentation
+and examples for OpShin, and the PyCardano manual. OpShin provides the mechanism
+to put smart contracts on-chain and necessary validation machinery. PyCardano
+enables us to interact with Cardano off-chain, e.g. allowing us to build the
+all important transactions and submit those.
+
+* [OpShin][links-1].
+* [PyCardano][links-2].
+
+## Contents
 
 - [Oracle contract](#oracle-contract)
 - [Vesting contract](#vesting-contract)
@@ -24,11 +44,9 @@ This example has 2 Opshin smart contracts:
       - [Refunding the ADA](#refunding-the-ada)
       - [Undeploy the scripts](#undeploy-the-scripts)
 
-This work is a modified version of cardano-apexpool's examples [here][apex-1].
-Many of the mechanics have been kept with terminology modified slightly and
-additional logging added to aid usabiility.
-
 [apex-1]: https://github.com/cardano-apexpool/opshin-smart-contract-examples
+[links-1]: https://github.com/OpShin/opshin
+[links-2]: https://pycardano.readthedocs.io/en/latest/tutorial.html
 
 ## Oracle contract
 
